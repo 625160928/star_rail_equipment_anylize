@@ -1,0 +1,1 @@
+# star_rail_equipment_anylize
