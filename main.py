@@ -8,6 +8,56 @@ equip_name_dict=dict()
 equip_from_dict=dict()
 #通过装备原名到角色需求的放置表
 equip_match_character_dict=dict()
+#主词条出货概率字典
+equip_main=dict()
+#副词条权重字典
+equip_res=dict()
+res_skill_list=[]
+
+#初始化主词条概率分析字典
+def init_equip_main_dict():
+    yifu_list=[['大生命',0.2],['大攻击',0.2],['大防御',0.2],
+               ['暴击',0.1],['暴伤',0.1],['治疗量',0.1],['效果命中',0.1]]
+    xiezi_list=[['大生命',0.2917],['大攻击',0.2917],['大防御',0.2917],
+               ['速度',0.125]]
+    shengzi_list=[['大生命',0.2633],['大攻击',0.2633],['大防御',0.2633],
+               ['击破',0.15],['充能',0.06]]
+    qiu_list=[['大生命',0.1233],['大攻击',0.1233],['大防御',0.1233]
+               ,['冰伤',0.09] ,['火伤',0.09] ,['物伤',0.09] ,['虚数伤害',0.09] ,['量子伤',0.09] ,['雷伤',0.09] ,['风伤',0.09]]
+
+    equip_main[('头','小生命')]=1
+    equip_main[('手','小攻击')]=1
+
+
+    for name,p in xiezi_list:
+        equip_main[('鞋子',name)]=p
+    for name,p in yifu_list:
+        equip_main[('衣服',name)]=p
+    for name,p in qiu_list:
+        equip_main[('球',name)]=p
+    for name,p in shengzi_list:
+        equip_main[('绳子',name)]=p
+
+#初始化副词条字典
+def init_equip_res_dict():
+    res_map=[
+        ('小生命',100),
+        ('小攻击',100),
+        ('小防御',100),
+        ('大生命',100),
+        ('大攻击',100),
+        ('大防御',100),
+        ('速度',40),
+        ('暴击',60),
+        ('暴伤',60),
+        ('效果抵抗',100),
+        ('效果命中',100),
+        ('击破',100)
+    ]
+    for name,p in res_map:
+        equip_res[name]=p
+        res_skill_list.append(name)
+
 
 class character_equip():
     def __init__(self,name,eq4,eq2,val,val_list,main_yifu,main_xiezi,main_qiu,main_shengzi
@@ -144,6 +194,15 @@ def read_excel_character_info(excel_file_path):
 
     return ret_list
 
+repp_list=set()
+
+#根据有效词条列表和无效词条列表计算不同有效词条数量的概率（0-8/9）
+def equip_anylize_cal(use_list,res_list):
+    repp_list.add((len(use_list),len(res_list)))
+
+
+    return
+
 #装备词条分析
 #输入为主词条名称（用于移除有效词条中重复的），有效词条列表，当前有效词条数量，部位
 def equip_anylize(main_skill,useful_skills,now_skill_num,pos_name):
@@ -152,17 +211,26 @@ def equip_anylize(main_skill,useful_skills,now_skill_num,pos_name):
     if main_skill in re_useful:
         re_useful.remove(main_skill)
 
+    tmp_skill_list=copy.deepcopy(res_skill_list)
+    if main_skill in tmp_skill_list:
+        tmp_skill_list.remove(main_skill)
+    for sk in re_useful:
+        if sk in tmp_skill_list:
+            tmp_skill_list.remove(sk)
+    # print(pos_name,'主词条需求为',main_skill,' 有效词条为 ',re_useful,' 当前有效数量为 ',now_skill_num,' 主词条概率为 ',equip_main[(pos_name,main_skill)])
+    print(equip_main[(pos_name,main_skill)],len(re_useful),len(tmp_skill_list),main_skill,'------',re_useful,'/',tmp_skill_list)
 
-    print(pos_name,'主词条需求为',main_skill,' 有效词条为 ',re_useful,' 当前有效数量为 ',now_skill_num)
+    p_list=equip_anylize_cal(re_useful,tmp_skill_list)
+
     return ret
 
 #从角色信息挂在到装备刷取里面
 def update_character_equip_match_info(character_info_list):
     skill_list=set()
     for ch in character_info_list:
-        print('===================================')
+        # print('===================================')
         print(ch.name,ch.eq4,ch.eq2)
-        print('该角色有效副词条为',ch.val_list)
+        # print('该角色有效副词条为',ch.val_list)
 
         for i in ch.val_list:
             skill_list.add(i)
@@ -172,18 +240,18 @@ def update_character_equip_match_info(character_info_list):
         skill_list.add(ch.main_shengzi)
 
         for eq in ch.eq4:
-            print('1. 外圈装备为',eq,' 衣服鞋子主词条为 ',ch.main_yifu,ch.main_xiezi,
-                  '当前有效词条数量为',ch.val_num_tou,ch.val_num_shou,ch.val_num_yifu,ch.val_num_xiezi)
-            ret=equip_anylize('小生命',ch.val_list,ch.val_num_tou,'tou')
-            ret=equip_anylize('小攻击',ch.val_list,ch.val_num_shou,'shou')
-            ret=equip_anylize(ch.main_yifu,ch.val_list,ch.val_num_yifu,'yifu')
-            ret=equip_anylize(ch.main_xiezi,ch.val_list,ch.val_num_xiezi,'xiezi')
+            # print('1. 外圈装备为',eq,' 衣服鞋子主词条为 ',ch.main_yifu,ch.main_xiezi,
+            #       '当前有效词条数量为',ch.val_num_tou,ch.val_num_shou,ch.val_num_yifu,ch.val_num_xiezi)
+            ret_tou=equip_anylize('小生命',ch.val_list,ch.val_num_tou,'头')
+            ret_shou=equip_anylize('小攻击',ch.val_list,ch.val_num_shou,'手')
+            ret_yifiu=equip_anylize(ch.main_yifu,ch.val_list,ch.val_num_yifu,'衣服')
+            ret_xiezi=equip_anylize(ch.main_xiezi,ch.val_list,ch.val_num_xiezi,'鞋子')
 
-        print('2. 内圈装备为',ch.eq2,' 球和绳子主词条为 ',ch.main_qiu,ch.main_shengzi,
-              '当前有效词条数量为',ch.val_num_qiu,ch.val_num_shengzi)
+        # print('2. 内圈装备为',ch.eq2,' 球和绳子主词条为 ',ch.main_qiu,ch.main_shengzi,
+        #       '当前有效词条数量为',ch.val_num_qiu,ch.val_num_shengzi)
 
-        ret = equip_anylize(ch.main_qiu, ch.val_list, ch.val_num_qiu, 'qiu')
-        ret = equip_anylize(ch.main_shengzi, ch.val_list, ch.val_num_shengzi, 'shengzi')
+        ret_qiu = equip_anylize(ch.main_qiu, ch.val_list, ch.val_num_qiu, '球')
+        ret_shengzi = equip_anylize(ch.main_shengzi, ch.val_list, ch.val_num_shengzi, '绳子')
 
         print('-----')
 
@@ -191,10 +259,16 @@ def update_character_equip_match_info(character_info_list):
     lsl=list(skill_list)
     lsl.sort()
     print('词条一览 ',lsl)
+    print('需计算概率 ',repp_list)
     return
 
 def main():
     excel_file_path = '星铁装备刷取.xlsx'
+
+    #初始化主词条字典
+    init_equip_main_dict()
+    #初始化副词条字典
+    init_equip_res_dict()
 
     #读取装备相关信息
     read_excel_equip_info(excel_file_path)
