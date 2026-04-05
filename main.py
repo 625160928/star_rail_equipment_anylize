@@ -249,17 +249,19 @@ def equip_anylize(main_skill,useful_skills,now_skill_num,pos_name):
     for sk in re_useful:
         if sk in tmp_skill_list:
             tmp_skill_list.remove(sk)
-    # print('------------------')
-    # # print(pos_name,'主词条需求为',main_skill,' 有效词条为 ',re_useful,' 当前有效数量为 ',now_skill_num,' 主词条概率为 ',equip_main[(pos_name,main_skill)])
-    # print(equip_main[(pos_name,main_skill)],len(re_useful),len(tmp_skill_list),main_skill,'------',re_useful,'/',tmp_skill_list)
 
     p_list=equip_anylize_cal(re_useful,tmp_skill_list)
+    p_list_add_main=p_list*equip_main[(pos_name,main_skill)]
 
-    # print('在当前情况下,该装备获得不同数量词条的概率为 ',p_list)
+    # print('------------------')
+    # print(pos_name,'主词条需求为',main_skill,' 有效词条为 ',re_useful,' 当前有效数量为 ',now_skill_num,' 主词条概率为 ',equip_main[(pos_name,main_skill)])
+    # print(equip_main[(pos_name,main_skill)],len(re_useful),len(tmp_skill_list),main_skill,'------',re_useful,'/',tmp_skill_list)
+    # print('在当前情况下，不考虑主词条刷取概率的情况下,该装备获得不同数量词条的概率为 ',p_list)
+    # print('主词条出货概率为',equip_main[(pos_name,main_skill)],p_list_add_main)
     # print('想要获取比',now_skill_num,' 更好的数量的词条的概率为 ',sum(p_list[now_skill_num+1:]))
     # print('------------------')
 
-    return p_list
+    return p_list_add_main
 
 #从角色装备信息挂在信息类里面,顺便计算每个角色的装备刷取出更好的概率
 def update_character_equip_anylize(character_info_list):
@@ -394,7 +396,7 @@ def load_character_to_equipment(character_info_list):
 
     return sort_equip_match_list,sort_pose_list
 
-def main():
+def main(show_log=False):
     excel_file_path = '星铁装备刷取.xlsx'
 
     #初始化主词条字典
@@ -414,28 +416,32 @@ def main():
     #展示角色更好的装备刷取概率
     sort_eq_list,sort_eq_once_list=show_character_equipment_list(character_info_list)
 
-    #展示角色套装刷取优化概率
-    print('展示角色套装刷取优化概率====================================')
-    for i in sort_eq_list:
-        print(i)
-
-    #展示角色部位刷取优化概率
-    print('展示角色部位刷取优化概率====================================')
-    for i in sort_eq_once_list:
-        print(i)
-
     #将角色根据装备信息挂载到装备里面去
     sort_equip_match_list,sort_pose_list=load_character_to_equipment(character_info_list)
 
-    #展示角色部位刷取优化概率
-    print('展示套装刷取优化概率====================================')
-    for i in sort_equip_match_list:
-        print(i)
+    if show_log:
+        #展示角色套装刷取优化概率
+        print('展示角色套装刷取优化概率====================================')
+        for i in sort_eq_list:
+            print(i)
 
-    #展示角色部位刷取优化概率
-    print('展示刷取地点刷取优化概率====================================')
-    for i in sort_pose_list:
-        print(i)
+        #展示角色部位刷取优化概率
+        print('展示角色部位刷取优化概率====================================')
+        for i in sort_eq_once_list:
+            print(i)
+
+        #展示角色部位刷取优化概率
+        print('展示套装刷取优化概率====================================')
+        for i in sort_equip_match_list:
+            print(i)
+
+        #展示角色部位刷取优化概率
+        print('展示刷取地点刷取优化概率====================================')
+        for i in sort_pose_list:
+            print(i)
 
 if __name__ == "__main__":
-    main()
+    # val_show_log=False
+    val_show_log=True
+
+    main(show_log=val_show_log)
