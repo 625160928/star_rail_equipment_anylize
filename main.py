@@ -237,7 +237,9 @@ def equip_anylize_cal(use_list,res_list):
 
 #装备词条分析
 #输入为主词条名称（用于移除有效词条中重复的），有效词条列表，当前有效词条数量，部位
-#返回是该装备出现不同数量词条的概率
+#返回是该装备出现不同数量词条的概率（包括主词条+副词条概率）
+#然后再把一次刷新2/3金概率折算后的1.05乘进去了
+#然后还要把部位的概率下降算进去，四件套*0.25，两件套*0.5
 def equip_anylize(main_skill,useful_skills,now_skill_num,pos_name):
     re_useful = copy.deepcopy(useful_skills)
     if main_skill in re_useful:
@@ -249,10 +251,15 @@ def equip_anylize(main_skill,useful_skills,now_skill_num,pos_name):
     for sk in re_useful:
         if sk in tmp_skill_list:
             tmp_skill_list.remove(sk)
-
     p_list=equip_anylize_cal(re_useful,tmp_skill_list)
     p_list_add_main=p_list*equip_main[(pos_name,main_skill)]
-
+    # print('----------')
+    # print(pos_name,p_list_add_main)
+    if pos_name in ['头','手','衣服','鞋子']:
+        p_list_add_main*=0.25
+    else:
+        p_list_add_main*=0.5
+    # print(pos_name,p_list_add_main)
     # print('------------------')
     # print(pos_name,'主词条需求为',main_skill,' 有效词条为 ',re_useful,' 当前有效数量为 ',now_skill_num,' 主词条概率为 ',equip_main[(pos_name,main_skill)])
     # print(equip_main[(pos_name,main_skill)],len(re_useful),len(tmp_skill_list),main_skill,'------',re_useful,'/',tmp_skill_list)
@@ -261,7 +268,7 @@ def equip_anylize(main_skill,useful_skills,now_skill_num,pos_name):
     # print('想要获取比',now_skill_num,' 更好的数量的词条的概率为 ',sum(p_list[now_skill_num+1:]))
     # print('------------------')
 
-    return p_list_add_main
+    return p_list_add_main*1.05
 
 #从角色装备信息挂在信息类里面,顺便计算每个角色的装备刷取出更好的概率
 def update_character_equip_anylize(character_info_list):
@@ -421,24 +428,24 @@ def main(show_log=False):
 
     if show_log:
         #展示角色套装刷取优化概率
-        print('展示角色套装刷取优化概率====================================')
+        print('====================================展示角色套装刷取优化概率====================================')
         for i in sort_eq_list:
             print(i)
 
         #展示角色部位刷取优化概率
-        print('展示角色部位刷取优化概率====================================')
+        print('====================================展示角色部位刷取优化概率====================================')
         for i in sort_eq_once_list:
             print(i)
 
-        #展示角色部位刷取优化概率
-        print('展示套装刷取优化概率====================================')
+        #展示套装刷取优化概率
+        print('====================================展示套装刷取优化概率====================================')
         for i in sort_equip_match_list:
             print(i)
 
-        #展示角色部位刷取优化概率
-        print('展示刷取地点刷取优化概率====================================')
-        for i in sort_pose_list:
-            print(i)
+        #展示刷取地点刷取优化概率
+        print('====================================展示刷取地点刷取优化概率====================================')
+        for i in range(len(sort_pose_list)):
+            print(i,sort_pose_list[i])
 
 if __name__ == "__main__":
     # val_show_log=False

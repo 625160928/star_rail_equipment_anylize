@@ -1,5 +1,5 @@
 import copy
-
+from itertools import combinations
 import numpy as np
 
 
@@ -46,6 +46,40 @@ def init_equip_res_dict():
         res_skill_list.append(name)
 
 
+def cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,useful_num,res_num):
+
+    combine_use_list = list(combinations(use_name_list, useful_num))
+    combine_res_list = list(combinations(res_name_list, res_num))
+    # print('有效组合为 ',len(combine_use_list),combine_use_list)
+    # print('----')
+    # print('无效组合为 ',len(combine_res_list),combine_res_list)
+
+
+    t_numb=len(use_name_list)+len(res_name_list)
+    #C_(t_numb)_4,从t_numb里抽取4个的组合方式
+    comb_total_numb=t_numb/24
+    for i in range(1,4):
+        comb_total_numb*=t_numb-i
+
+
+    # print('=================')
+    # print('有效词条数量为：',len(use_name_list),use_name_list)
+    # print('其他副词条数量为：',len(res_name_list),res_name_list)
+    # print('目前需要计算在有效词条数量为 ',useful_num,'，无效词条数量为 ',res_num,' 的情况')
+    # print('有效组合数量为 ',len(combine_use_list),' 无效组合数量为 ',len(combine_res_list))
+    # print('词条总数为',t_numb,' ,在当前情况下，词条的组合方式总数为: ',int(comb_total_numb),
+    #       '符合目前要求的组合数量为',len(combine_use_list)*len(combine_res_list))
+
+    return len(combine_use_list)*len(combine_res_list)/comb_total_numb
+    # return 0.2
+
+#计算初始四词条中，四词条里有效词条的概率分布
+def cal_eff_when_init4(use_name_list,res_name_list,equip_name_weight_dict):
+    p_list=[]
+    for i in range(5):
+        p_list.append(cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,i,4-i))
+
+    return np.array(p_list)
 '''
 输入为：有用的词条列表，其他可选副词条列表、每个词条对应的权重
 输出为：【p0,p1,p2,p3,p4,p5,p6,p7,p8,p9】，为最终获取得到的装备中有0-9个有效词条的概率
@@ -53,18 +87,15 @@ def init_equip_res_dict():
 '''
 def cal_p(use_name_list,res_name_list,equip_name_weight_dict):
     #计算3/4词条里，在当前条件下有效词条的概率分布
-
-
-
-
-
     #获取初始三词条中，三词条里有效词条的概率分布
-    p_init3_dist=np.array([0.25,0.25,0.25,0.25,0])
-    #获取初始四词条中，四词条里有效词条的概率分布
-    p_init4_dist=np.array([0.2,0.2,0.2,0.2,0.2])
+    p_init3_dist=cal_eff_when_init4(use_name_list,res_name_list,equip_name_weight_dict)
+    #获取初始四词条中，四词条里有效词条的概率分布，两者概率分布相同，强化数量不同
+    p_init4_dist=copy.deepcopy(p_init3_dist)
 
+    print('=====================')
+    print('初始状态下四词条，有效词条数量概率分布为',p_init4_dist)
     #region 计算三词条概率分布
-    #计算三词条中不同有效词条最终概率分布
+    #计算三词条中不同有效词条最终概率分布,最终表现为可以强化4次
     p_arr3_copy=copy.deepcopy(p_arr3)
     p_dict3=np.zeros(10)
     #然后计算在当前条件下最终有效词条数量的概率分布
@@ -77,7 +108,7 @@ def cal_p(use_name_list,res_name_list,equip_name_weight_dict):
     #endregion
 
     # region 计算四词条概率分布
-    # 计算四词条中不同有效词条最终概率分布
+    # 计算四词条中不同有效词条最终概率分布,最终表现为可以强化5次
     p_arr4_copy = copy.deepcopy(p_arr4)
     p_dict4 = np.zeros(10)
     # 然后计算在当前条件下最终有效词条数量的概率分布
@@ -104,7 +135,7 @@ def main():
     for quse,qres in q:
         p_total=cal_p(quse,qres,equip_res)
 
-        print(p_total)
+        print('最终满级不同有效词条数量的概率分布为 ',p_total)
         break
 
     return
