@@ -1,4 +1,5 @@
 import copy
+import itertools
 from itertools import combinations
 import numpy as np
 
@@ -26,8 +27,9 @@ p_arr4=np.array([
     [1/32,5/32,10/32,10/32,5/32,1/32],
     [1/1024,15/1024,90/1024,270/1024,405/1024,243/1024],
     [0,0,0,0,0,1]
-
 ])
+
+perm_order = list(itertools.permutations([0, 1, 2, 3], 4))
 
 def init_equip_res_dict():
     res_map = [
@@ -51,8 +53,24 @@ def init_equip_res_dict():
 
 #在已经确认抽取哪些词条的基础上，计算该词条的不同顺序的概率的总和，作为这个词条的抽取概率
 def cal_p_once(skills,w_arr,w_total):
+    # print(skills,'------------------',w_arr,w_total)
+    w_mu=w_arr[0]*w_arr[1]*w_arr[2]*w_arr[3]
+    # print(w_mu)
+    p_list=[]
+    for i in range(len(perm_order)):
+        p=w_mu
+        res=w_total
+        for j in range(4):
+            # print(j,p,res,'-',w_arr[perm_order[i][j]],'=',res-w_arr[perm_order[i][j]],p/res)
+            p=p/res
+            res-=w_arr[perm_order[i][j]]
+            # p_arr.append(w_arr[perm_order[i][j]])
 
-    return 1
+        # print(i, perm_order[i],p)
+        # print('------')
+        # print(p_arr)
+        p_list.append(p)
+    return sum(p_list)
 
 #在指定命中词条数的情况下，枚举每一种组合情况，并计算每种组合概率的和作为命中词条数的概率
 def cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,useful_num,res_num):
@@ -71,13 +89,13 @@ def cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,useful_
         comb_total_numb*=t_numb-i
 
 
-    print('=================')
-    print('有效词条数量为：',len(use_name_list),use_name_list)
-    print('其他副词条数量为：',len(res_name_list),res_name_list)
-    print('目前需要计算在有效词条数量为 ',useful_num,'，无效词条数量为 ',res_num,' 的情况')
-    print('有效组合数量为 ',len(combine_use_list),' 无效组合数量为 ',len(combine_res_list))
-    print('词条总数为',t_numb,' ,在当前情况下，词条的组合方式总数为: ',int(comb_total_numb),
-          '符合目前要求的组合数量为',len(combine_use_list)*len(combine_res_list))
+    # print('=================')
+    # print('有效词条数量为：',len(use_name_list),use_name_list)
+    # print('其他副词条数量为：',len(res_name_list),res_name_list)
+    # print('目前需要计算在有效词条数量为 ',useful_num,'，无效词条数量为 ',res_num,' 的情况')
+    # print('有效组合数量为 ',len(combine_use_list),' 无效组合数量为 ',len(combine_res_list))
+    # print('词条总数为',t_numb,' ,在当前情况下，词条的组合方式总数为: ',int(comb_total_numb),
+    #       '符合目前要求的组合数量为',len(combine_use_list)*len(combine_res_list))
     # print(res_skill_list)
     weight_total=0
     for su in use_name_list:
@@ -86,7 +104,7 @@ def cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,useful_
     for sr in res_name_list:
         weight_total+=equip_res[sr]
         # print(sr,equip_res[sr])
-    print('总权重为 ',weight_total)
+    # print('总权重为 ',weight_total)
 
     # p_total_list 储存每个组合的概率
     p_total_list=[]
@@ -107,8 +125,11 @@ def cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,useful_
             #查询部分
             if ck in cal_cache_dict:
                 p=cal_cache_dict[ck]
+                # print('快查 ',skills,ck,p)
             else:
                 p=cal_p_once(skills,w_arr,weight_total)
+
+                # print('【计算】 ',skills,ck,p)
                 cal_cache_dict[ck]=p
 
             p_total_list.append((skills,ck,p))
@@ -117,8 +138,9 @@ def cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,useful_
     for sk,w,p in p_total_list:
         # print(sk,w,p)
         p_final_total+=p
-    print('概率为 ',p_final_total)
-    return len(combine_use_list)*len(combine_res_list)/comb_total_numb
+    # print('概率为 ',p_final_total)
+    # return len(combine_use_list)*len(combine_res_list)/comb_total_numb
+    return p_final_total
     # return 0.2
 
 #计算初始四词条中，四词条里有效词条的概率分布
@@ -140,8 +162,8 @@ def cal_p(use_name_list,res_name_list,equip_name_weight_dict):
     #获取初始四词条中，四词条里有效词条的概率分布，两者概率分布相同，强化数量不同
     p_init4_dist=copy.deepcopy(p_init3_dist)
 
-    print('=====================')
-    print('初始状态下四词条，有效词条数量概率分布为',p_init4_dist)
+    # print('=====================')
+    # print('初始状态下四词条，有效词条数量概率分布为',p_init4_dist,'总和为',sum(p_init4_dist))
 
     #region 计算三词条概率分布
     #计算三词条中不同有效词条最终概率分布,最终表现为可以强化4次
@@ -183,9 +205,10 @@ def main():
 
     for quse,qres in q:
         p_total=cal_p(quse,qres,equip_res)
-
+        print('-----------------------------------')
+        print(quse,qres)
         print('最终满级不同有效词条数量的概率分布为 ',p_total)
-        break
+        # break
 
     return
 
