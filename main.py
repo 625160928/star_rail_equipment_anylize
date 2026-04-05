@@ -28,6 +28,7 @@ class character_equip():
         self.main_qiu =main_qiu
         self.main_shengzi =main_shengzi
 
+        #储存当前有效词条数量
         self.val_num_tou =val_num_tou
         self.val_num_shou =val_num_shou
         self.val_num_yifu =val_num_yifu
@@ -36,15 +37,17 @@ class character_equip():
         self.val_num_shengzi =val_num_shengzi
         self.val_num_list=[val_num_tou,val_num_shou,val_num_yifu,val_num_xiezi,val_num_qiu,val_num_shengzi]
 
+        #储存每个部位装备的分析，里面村的list
         self.eq4_anylize=[]
         self.eq2_anylize=[]
 
 
+    #计算目前有效词条综述
     @property
     def total_val(self):
         return self.val_num_tou+self.val_num_shou+self.val_num_yifu+self.val_num_xiezi+self.val_num_qiu+self.val_num_shengzi
 
-    #更新信息
+    #更新信息，excel输入的装备信息都是简称，后续处理都按照原名处理
     def update_info(self):
         self.pos=[]
         for i in range(len(self.eq4)):
@@ -74,7 +77,7 @@ class character_equip():
 
         for i in range(2):
             eq_anylize_list=self.eq2_anylize[i]
-            eq_val=self.val_num_list[i]
+            eq_val=self.val_num_list[4+i]
             p_better=sum(eq_anylize_list[eq_val+1:])
             ret.append(p_better)
         #     print('eq2 ',i, eq_anylize_list,'---', self.val_num_list, eq_val,',',p_better)
@@ -265,7 +268,7 @@ def update_character_equip_anylize(character_info_list):
         # print('===================================')
         # print('-----')
         # print(ch.name,ch.eq4,ch.eq2)
-        # print('该角色有效副词条为',ch.val_list)
+        # print('该角色有效副词条为',ch.val_name_list)
 
         for i in ch.val_name_list:
             skill_list.add(i)
@@ -275,8 +278,8 @@ def update_character_equip_anylize(character_info_list):
         skill_list.add(ch.main_shengzi)
 
         # for eq in ch.eq4:
-            # print('1. 外圈装备为',eq,' 衣服鞋子主词条为 ',ch.main_yifu,ch.main_xiezi,
-            #       '当前有效词条数量为',ch.val_num_tou,ch.val_num_shou,ch.val_num_yifu,ch.val_num_xiezi)
+        #     print('1. 外圈装备为',eq,' 衣服鞋子主词条为 ',ch.main_yifu,ch.main_xiezi,
+        #           '当前有效词条数量为',ch.val_num_tou,ch.val_num_shou,ch.val_num_yifu,ch.val_num_xiezi)
         ret_tou=equip_anylize('小生命', ch.val_name_list, ch.val_num_tou, '头')
         ret_shou=equip_anylize('小攻击', ch.val_name_list, ch.val_num_shou, '手')
         ret_yifiu=equip_anylize(ch.main_yifu, ch.val_name_list, ch.val_num_yifu, '衣服')
@@ -296,26 +299,39 @@ def update_character_equip_anylize(character_info_list):
     print('需计算概率 ',repp_list)
     return
 
+
+#获取最后一个概率为0的词条数量
+def get_last_zero(arr):
+    if arr[-1]!=0:
+        return 9
+    i=9
+    for i in range(len(arr)-1,0,-1):
+        if i!=0:
+            return i
+    return i
 #以角色为核心，进行遗器优化概率的排序
 def show_character_equipment_list(character_info_list):
     eq_list=[]
     eq_once_list=[]
     for ch in character_info_list:
+        # print('----------------')
         # print(ch.name,ch.eq4,ch.eq2,ch.p_better)
         eq4_better=sum(ch.p_better[:4])/4
         eq2_better=sum(ch.p_better[4:])/2
         # print(ch.name,ch.eq4,ch.eq2,eq4_better,eq2_better)
+        # print('外圈分析 ',ch.eq4_anylize)
+        # print('内圈分析 ',ch.eq2_anylize)
         for i in ch.eq4:
             eq_list.append(('四件套-'+i,ch.name,eq4_better))
-            eq_once_list.append(('四件套-'+i+'-头部',ch.name,ch.p_better[0]))
-            eq_once_list.append(('四件套-'+i+'-手部',ch.name,ch.p_better[1]))
-            eq_once_list.append(('四件套-'+i+'-衣服',ch.name,ch.p_better[2]))
-            eq_once_list.append(('四件套-'+i+'-鞋子',ch.name,ch.p_better[3]))
+            eq_once_list.append(('四件套-'+i+'-头部',ch.name,ch.p_better[0],ch.val_num_tou,get_last_zero(ch.eq4_anylize[0])))
+            eq_once_list.append(('四件套-'+i+'-手部',ch.name,ch.p_better[1],ch.val_num_shou,get_last_zero(ch.eq4_anylize[1])))
+            eq_once_list.append(('四件套-'+i+'-衣服',ch.name,ch.p_better[2],ch.val_num_yifu,get_last_zero(ch.eq4_anylize[2])))
+            eq_once_list.append(('四件套-'+i+'-鞋子',ch.name,ch.p_better[3],ch.val_num_xiezi,get_last_zero(ch.eq4_anylize[3])))
         eq_list.append(('两件套-'+ch.eq2,ch.name,eq2_better))
 
-        eq_once_list.append(('两件套-' + ch.eq2+ '-衣服', ch.name, ch.p_better[4]))
-        eq_once_list.append(('两件套-' + ch.eq2+ '-鞋子', ch.name, ch.p_better[5]))
-
+        eq_once_list.append(('两件套-' + ch.eq2+ '-球', ch.name, ch.p_better[4],ch.val_num_qiu,get_last_zero(ch.eq2_anylize[0])))
+        eq_once_list.append(('两件套-' + ch.eq2+ '-绳子', ch.name, ch.p_better[5],ch.val_num_shengzi,get_last_zero(ch.eq2_anylize[1])))
+        # print('球的分析',ch.val_num_qiu,ch.eq2_anylize[0])
 
     sort_eq_list=sorted(eq_list,key=lambda x:x[2])
     sort_eq_once_list=sorted(eq_once_list,key=lambda x:x[2])
@@ -398,18 +414,26 @@ def main():
     #展示角色更好的装备刷取概率
     sort_eq_list,sort_eq_once_list=show_character_equipment_list(character_info_list)
 
+    #展示角色套装刷取优化概率
+    print('展示角色套装刷取优化概率====================================')
     for i in sort_eq_list:
         print(i)
-    print('====================================')
+
+    #展示角色部位刷取优化概率
+    print('展示角色部位刷取优化概率====================================')
     for i in sort_eq_once_list:
         print(i)
 
     #将角色根据装备信息挂载到装备里面去
     sort_equip_match_list,sort_pose_list=load_character_to_equipment(character_info_list)
-    print('---------------------------------')
+
+    #展示角色部位刷取优化概率
+    print('展示套装刷取优化概率====================================')
     for i in sort_equip_match_list:
         print(i)
-    print('---------------------------------')
+
+    #展示角色部位刷取优化概率
+    print('展示刷取地点刷取优化概率====================================')
     for i in sort_pose_list:
         print(i)
 
