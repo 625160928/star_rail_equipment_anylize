@@ -228,9 +228,9 @@ repp_list=set()
 def equip_anylize_cal(use_list,res_list):
     repp_list.add((len(use_list),len(res_list)))
     # print(use_list,res_list)
-    math_cal.cal_p(use_name_list=use_list,res_name_list=res_list,equip_name_weight_dict=equip_res)
+    ret=math_cal.cal_p(use_name_list=use_list,res_name_list=res_list,equip_name_weight_dict=equip_res)
 
-    return np.ones(10)/10
+    return ret
 
 #装备词条分析
 #输入为主词条名称（用于移除有效词条中重复的），有效词条列表，当前有效词条数量，部位
