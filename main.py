@@ -330,8 +330,8 @@ def show_character_equipment_list(character_info_list):
     for ch in character_info_list:
         # print('----------------')
         # print(ch.name,ch.eq4,ch.eq2,ch.p_better)
-        eq4_better=sum(ch.p_better[:4])/4
-        eq2_better=sum(ch.p_better[4:])/2
+        eq4_better=sum(ch.p_better[:4])
+        eq2_better=sum(ch.p_better[4:])
         # print(ch.name,ch.eq4,ch.eq2,eq4_better,eq2_better)
         # print('外圈分析 ',ch.eq4_anylize)
         # print('内圈分析 ',ch.eq2_anylize)
@@ -358,8 +358,8 @@ def show_character_equipment_list(character_info_list):
 def load_character_to_equipment(character_info_list):
 
     for ch in character_info_list:
-        eq4_better=sum(ch.p_better[:4])/4
-        eq2_better=sum(ch.p_better[4:])/2
+        eq4_better=sum(ch.p_better[:4])
+        eq2_better=sum(ch.p_better[4:])
         equip_match_character_dict[ch.eq2].append((ch.name,eq2_better))
         for i in ch.eq4:
             equip_match_character_dict[i].append((ch.name,eq4_better))
