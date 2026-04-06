@@ -408,7 +408,26 @@ def load_character_to_equipment(character_info_list):
 
     return sort_equip_match_list,sort_pose_list
 
-def main(show_log=False):
+
+#计算在概率p出货的情况下，期望要多少次才能让出货（满级后词条数量大于目前）概率大于rate
+#p：出货概率
+#rate：目标为出现一个更好的装备的情况下，多少概率满足
+def cal_exp_numb_from_rate(p,rate):
+    #一次刷取不出货的概率
+    rp=1-p
+    #最终不出货的概率
+    target=1-rate
+
+    num=1
+    res=rp
+    while res>target:
+        res*=rp
+        num+=1
+        if num>9999:
+            return num
+    return num
+
+def main(show_log=False,exp_rate=0.95):
     excel_file_path = '星铁装备刷取.xlsx'
 
     #初始化主词条字典
@@ -435,25 +454,30 @@ def main(show_log=False):
         #展示角色套装刷取优化概率
         print('====================================展示角色套装刷取优化概率====================================')
         for i in sort_eq_list:
-            print(i)
+            p=i[2]
+            print(i,'%概率期望出货次数',cal_exp_numb_from_rate(p,exp_rate))
 
         #展示角色部位刷取优化概率
         print('====================================展示角色部位刷取优化概率====================================')
         for i in sort_eq_once_list:
-            print(i)
+            p=i[2]
+            print(i,'%概率期望出货次数',cal_exp_numb_from_rate(p,exp_rate))
 
         #展示套装刷取优化概率
         print('====================================展示套装刷取优化概率====================================')
         for i in sort_equip_match_list:
-            print(i)
+            p=i[1]
+            print(i,round(exp_rate*100,2),'%概率期望出货次数',cal_exp_numb_from_rate(p,exp_rate))
 
         #展示刷取地点刷取优化概率
         print('====================================展示刷取地点刷取优化概率====================================')
         for i in range(len(sort_pose_list)):
-            print(i,sort_pose_list[i])
+            p=sort_pose_list[i][1]
+            print(i,sort_pose_list[i],round(exp_rate*100,2),'%概率期望出货次数',cal_exp_numb_from_rate(p,exp_rate))
+            # print()
 
 if __name__ == "__main__":
     # val_show_log=False
     val_show_log=True
-
-    main(show_log=val_show_log)
+    val_exp_rate=0.9
+    main(show_log=val_show_log,exp_rate=val_exp_rate)
