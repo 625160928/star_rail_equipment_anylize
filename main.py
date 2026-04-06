@@ -455,13 +455,13 @@ def main(show_log=False,exp_rate=0.95):
         print('====================================展示角色套装刷取优化概率====================================')
         for i in sort_eq_list:
             p=i[2]
-            print(i,'%概率期望出货次数',cal_exp_numb_from_rate(p,exp_rate))
+            print(i,round(exp_rate*100,2),'%概率期望出货次数',cal_exp_numb_from_rate(p,exp_rate))
 
         #展示角色部位刷取优化概率
         print('====================================展示角色部位刷取优化概率====================================')
         for i in sort_eq_once_list:
             p=i[2]
-            print(i,'%概率期望出货次数',cal_exp_numb_from_rate(p,exp_rate))
+            print(i,round(exp_rate*100,2),'%概率期望出货次数',cal_exp_numb_from_rate(p,exp_rate))
 
         #展示套装刷取优化概率
         print('====================================展示套装刷取优化概率====================================')
