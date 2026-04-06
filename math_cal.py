@@ -53,7 +53,7 @@ def init_equip_res_dict():
 
 #在已经确认抽取哪些词条的基础上，计算该词条的不同顺序的概率的总和，作为这个词条的抽取概率
 def cal_p_once(skills,w_arr,w_total):
-    # print(skills,'------------------',w_arr,w_total)
+    # print('cal_p_once ',skills,'------------------',w_arr,w_total)
     w_mu=w_arr[0]*w_arr[1]*w_arr[2]*w_arr[3]
     # print(w_mu)
     p_list=[]
@@ -74,15 +74,19 @@ def cal_p_once(skills,w_arr,w_total):
 
 #在指定命中词条数的情况下，枚举每一种组合情况，并计算每种组合概率的和作为命中词条数的概率
 def cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,useful_num,res_num):
-
+    # if useful_num>len(use_name_list):
+    #     return 0
     combine_use_list = list(combinations(use_name_list, useful_num))
     combine_res_list = list(combinations(res_name_list, res_num))
-    # print('有效组合为 ',len(combine_use_list),combine_use_list)
+
     # print('----')
+    # print('选取数量为 ',useful_num,res_num,'--',use_name_list,res_name_list)
+    # print('有效组合为 ',len(combine_use_list),combine_use_list)
     # print('无效组合为 ',len(combine_res_list),combine_res_list)
 
 
     t_numb=len(use_name_list)+len(res_name_list)
+
     #C_(t_numb)_4,从t_numb里抽取4个的组合方式
     comb_total_numb=t_numb/24
     for i in range(1,4):
@@ -112,7 +116,7 @@ def cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,useful_
         for cr in combine_res_list:
             skills=cu+cr
             w_arr=[]
-
+            # print('cucr ',skills)
             for s in skills:
                 w_arr.append(equip_res[s])
             w_arr.sort()
@@ -147,8 +151,12 @@ def cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,useful_
 def cal_eff_when_init4(use_name_list,res_name_list,equip_name_weight_dict):
     p_list=[]
     for i in range(5):
-        p_list.append(cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,i,4-i))
-
+    # for i in range(min(5,len(use_name_list)+1)):
+        ret=cal_p_at_need_eff(use_name_list,res_name_list,equip_name_weight_dict,i,4-i)
+        p_list.append(ret)
+        # print('有效词条数量为',i,'的概率分布为--',ret)
+    while len(p_list)<5:
+        p_list.append(0)
     return np.array(p_list)
 '''
 输入为：有用的词条列表，其他可选副词条列表、每个词条对应的权重
@@ -196,19 +204,24 @@ def cal_p(use_name_list,res_name_list,equip_name_weight_dict):
     return p_total
 
 def main():
-    q=[(['速度', '大攻击', '暴击', '暴伤'], ['小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
-       (['速度', '大攻击', '暴击', '暴伤'],['小生命', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
-       (['速度', '大攻击', '暴伤'] ,['小生命', '小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
-       (['速度', '暴击', '暴伤'] ,['小生命', '小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
-       (['速度', '大攻击', '暴击', '暴伤'], ['小生命', '小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
-       (['速度', '暴击', '暴伤'], ['小生命', '小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破'])]
+    q=[
+        (['速度'], ['小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破', '大攻击', '暴击', '暴伤']),
+        (['速度', '大攻击'], ['小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破', '暴击', '暴伤']),
+        (['速度', '大攻击', '暴击'], ['小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破', '暴伤']),
+        (['速度', '大攻击', '暴击', '暴伤'], ['小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
+       # (['速度', '大攻击', '暴击', '暴伤'],['小生命', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
+       # (['速度', '大攻击', '暴伤'] ,['小生命', '小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
+       # (['速度', '暴击', '暴伤'] ,['小生命', '小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
+       # (['速度', '大攻击', '暴击', '暴伤'], ['小生命', '小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破']),
+       # (['速度', '暴击', '暴伤'], ['小生命', '小攻击', '小防御', '大生命', '大防御', '效果抵抗', '效果命中', '击破'])
+    ]
 
     for quse,qres in q:
         p_total=cal_p(quse,qres,equip_res)
         print('-----------------------------------')
         print(quse,qres)
         print('最终满级不同有效词条数量的概率分布为 ',p_total)
-        # break
+        break
 
     return
 

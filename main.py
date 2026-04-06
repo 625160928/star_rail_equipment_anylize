@@ -277,7 +277,7 @@ def update_character_equip_anylize(character_info_list):
         # print('===================================')
         # print('-----')
         # print(ch.name,ch.eq4,ch.eq2)
-        # print('该角色有效副词条为',ch.val_name_list)
+        # print('该角色有效副词条数量为',len(ch.val_name_list),ch.val_name_list)
 
         for i in ch.val_name_list:
             skill_list.add(i)
@@ -286,21 +286,26 @@ def update_character_equip_anylize(character_info_list):
         skill_list.add(ch.main_qiu)
         skill_list.add(ch.main_shengzi)
 
-        # for eq in ch.eq4:
-        #     print('1. 外圈装备为',eq,' 衣服鞋子主词条为 ',ch.main_yifu,ch.main_xiezi,
-        #           '当前有效词条数量为',ch.val_num_tou,ch.val_num_shou,ch.val_num_yifu,ch.val_num_xiezi)
         ret_tou=equip_anylize('小生命', ch.val_name_list, ch.val_num_tou, '头')
         ret_shou=equip_anylize('小攻击', ch.val_name_list, ch.val_num_shou, '手')
         ret_yifiu=equip_anylize(ch.main_yifu, ch.val_name_list, ch.val_num_yifu, '衣服')
         ret_xiezi=equip_anylize(ch.main_xiezi, ch.val_name_list, ch.val_num_xiezi, '鞋子')
         ch.eq4_anylize=(ret_tou,ret_shou,ret_yifiu,ret_xiezi)
-        # print('2. 内圈装备为',ch.eq2,' 球和绳子主词条为 ',ch.main_qiu,ch.main_shengzi,
-        #       '当前有效词条数量为',ch.val_num_qiu,ch.val_num_shengzi)
 
         ret_qiu = equip_anylize(ch.main_qiu, ch.val_name_list, ch.val_num_qiu, '球')
         ret_shengzi = equip_anylize(ch.main_shengzi, ch.val_name_list, ch.val_num_shengzi, '绳子')
         ch.eq2_anylize=(ret_qiu,ret_shengzi)
         ch.p_get_better6()
+
+        # for eq in ch.eq4:
+        #     print('1. 外圈装备为',eq,' 衣服鞋子主词条为 ',ch.main_yifu,ch.main_xiezi,
+        #           '当前有效词条数量为',ch.val_num_tou,ch.val_num_shou,ch.val_num_yifu,ch.val_num_xiezi)
+        # for i in ch.eq4_anylize:
+        #     print(i)
+        # print('2. 内圈装备为',ch.eq2,' 球和绳子主词条为 ',ch.main_qiu,ch.main_shengzi,
+        #       '当前有效词条数量为',ch.val_num_qiu,ch.val_num_shengzi)
+        # for i in ch.eq2_anylize:
+        #     print(i)
 
     lsl=list(skill_list)
     lsl.sort()
