@@ -87,6 +87,10 @@ class character_equip():
 
         # 初始化主词条概率分析字典
 
+    #储存各部位有效词条数量
+    def load_eff_num(self,eff_num):
+        self.eff_num_list=eff_num
+
 def init_equip_main_dict():
     yifu_list = [['大生命', 0.2], ['大攻击', 0.2], ['大防御', 0.2],
                  ['暴击', 0.1], ['暴伤', 0.1], ['治疗量', 0.1], ['效果命中', 0.1]]
@@ -323,6 +327,7 @@ def get_last_zero(arr):
         if i!=0:
             return i
     return i
+
 #以角色为核心，进行遗器优化概率的排序
 def show_character_equipment_list(character_info_list):
     eq_list=[]
@@ -337,14 +342,18 @@ def show_character_equipment_list(character_info_list):
         # print('内圈分析 ',ch.eq2_anylize)
         for i in ch.eq4:
             eq_list.append(('四件套-'+i,ch.name,eq4_better))
-            eq_once_list.append(('四件套-'+i+'-头部',ch.name,ch.p_better[0],ch.val_num_tou,get_last_zero(ch.eq4_anylize[0])))
-            eq_once_list.append(('四件套-'+i+'-手部',ch.name,ch.p_better[1],ch.val_num_shou,get_last_zero(ch.eq4_anylize[1])))
-            eq_once_list.append(('四件套-'+i+'-衣服',ch.name,ch.p_better[2],ch.val_num_yifu,get_last_zero(ch.eq4_anylize[2])))
-            eq_once_list.append(('四件套-'+i+'-鞋子',ch.name,ch.p_better[3],ch.val_num_xiezi,get_last_zero(ch.eq4_anylize[3])))
+            # eq_once_list.append(('四件套-'+i+'-头部',ch.name,ch.p_better[0],ch.val_num_tou,get_last_zero(ch.eq4_anylize[0])))
+            # eq_once_list.append(('四件套-'+i+'-手部',ch.name,ch.p_better[1],ch.val_num_shou,get_last_zero(ch.eq4_anylize[1])))
+            # eq_once_list.append(('四件套-'+i+'-衣服',ch.name,ch.p_better[2],ch.val_num_yifu,get_last_zero(ch.eq4_anylize[2])))
+            # eq_once_list.append(('四件套-'+i+'-鞋子',ch.name,ch.p_better[3],ch.val_num_xiezi,get_last_zero(ch.eq4_anylize[3])))
+            eq_once_list.append(('四件套-'+i+'-头部',ch.name,ch.p_better[0],ch.val_num_tou,ch.eff_num_list[0]+5))
+            eq_once_list.append(('四件套-'+i+'-手部',ch.name,ch.p_better[1],ch.val_num_shou,ch.eff_num_list[1]+5))
+            eq_once_list.append(('四件套-'+i+'-衣服',ch.name,ch.p_better[2],ch.val_num_yifu,ch.eff_num_list[2]+5))
+            eq_once_list.append(('四件套-'+i+'-鞋子',ch.name,ch.p_better[3],ch.val_num_xiezi,ch.eff_num_list[3]+5))
         eq_list.append(('两件套-'+ch.eq2,ch.name,eq2_better))
 
-        eq_once_list.append(('两件套-' + ch.eq2+ '-球', ch.name, ch.p_better[4],ch.val_num_qiu,get_last_zero(ch.eq2_anylize[0])))
-        eq_once_list.append(('两件套-' + ch.eq2+ '-绳子', ch.name, ch.p_better[5],ch.val_num_shengzi,get_last_zero(ch.eq2_anylize[1])))
+        eq_once_list.append(('两件套-' + ch.eq2+ '-球', ch.name, ch.p_better[4],ch.val_num_qiu,ch.eff_num_list[4]+5))
+        eq_once_list.append(('两件套-' + ch.eq2+ '-绳子', ch.name, ch.p_better[5],ch.val_num_shengzi,ch.eff_num_list[5]+5))
         # print('球的分析',ch.val_num_qiu,ch.eq2_anylize[0])
 
     sort_eq_list=sorted(eq_list,key=lambda x:x[2])
@@ -427,9 +436,40 @@ def cal_exp_numb_from_rate(p,rate):
             return num
     return num
 
+
 #将数据保存为excel表格
 def save_excel(data_list,name_list):
 
+
+    return
+
+def get_eff_num_except_main(use_list,main_skill):
+    if main_skill in use_list:
+        return max(len(use_list)-1,0)
+    return min(4,len(use_list))
+def cal_character_equip_update_max_num(character_info_list):
+
+
+    for ch in character_info_list:
+        # print(ch.name,ch.val_name_list)
+        eff_num_list=[]
+        for i in ch.eq4:
+            # print('四件套-'+i,ch.name,eq4_better))
+            # print('四件套-'+i+'-头部',ch.name,ch.p_better[0],'小生命',ch.val_num_tou,    '/init4-',5+get_eff_num_except_main(ch.val_name_list,'小生命'),get_eff_num_except_main(ch.val_name_list,'小生命'))
+            eff_num_list.append(get_eff_num_except_main(ch.val_name_list,'小生命'))
+            # print('四件套-'+i+'-手部',ch.name,ch.p_better[1],'小攻击',ch.val_num_shou,   '/init4-',5+get_eff_num_except_main(ch.val_name_list,'小攻击'),get_eff_num_except_main(ch.val_name_list,'小攻击'))
+            eff_num_list.append(get_eff_num_except_main(ch.val_name_list,'小攻击'))
+            # print('四件套-'+i+'-衣服',ch.name,ch.p_better[2],ch.main_yifu,ch.val_num_yifu,   '/init4-',5+get_eff_num_except_main(ch.val_name_list,ch.main_yifu),get_eff_num_except_main(ch.val_name_list,ch.main_yifu))
+            eff_num_list.append(get_eff_num_except_main(ch.val_name_list,ch.main_yifu))
+            # print('四件套-'+i+'-鞋子',ch.name,ch.p_better[3],ch.main_xiezi,ch.val_num_xiezi,   '/init4-',5+get_eff_num_except_main(ch.val_name_list,ch.main_xiezi),get_eff_num_except_main(ch.val_name_list,ch.main_xiezi))
+            eff_num_list.append(get_eff_num_except_main(ch.val_name_list,ch.main_xiezi))
+
+
+        # print('两件套-' + ch.eq2+ '-球', ch.name, ch.p_better[4],ch.main_qiu,ch.val_num_qiu, '/init4-',5+get_eff_num_except_main(ch.val_name_list,ch.main_qiu),get_eff_num_except_main(ch.val_name_list,ch.main_qiu))
+        eff_num_list.append(get_eff_num_except_main(ch.val_name_list,ch.main_qiu))
+        # print('两件套-' + ch.eq2+ '-绳子', ch.name, ch.p_better[5],ch.main_shengzi,ch.val_num_shengzi, '/init4-',5+get_eff_num_except_main(ch.val_name_list,ch.main_shengzi),get_eff_num_except_main(ch.val_name_list,ch.main_shengzi))
+        eff_num_list.append(get_eff_num_except_main(ch.val_name_list,ch.main_shengzi))
+        ch.load_eff_num(eff_num_list)
 
     return
 
@@ -447,6 +487,9 @@ def main(show_log=False,exp_rate=0.95):
     # 读取Excel文件
     character_info_list=read_excel_character_info(excel_file_path)
 
+    #计算角色词条最大提升数量
+    cal_character_equip_update_max_num(character_info_list)
+
     #分析角色装备获取的概率信息
     update_character_equip_anylize(character_info_list)
 
@@ -455,6 +498,8 @@ def main(show_log=False,exp_rate=0.95):
 
     #将角色根据装备信息挂载到装备里面去
     sort_equip_match_list,sort_pose_list=load_character_to_equipment(character_info_list)
+
+
 
     if show_log:
         #展示角色套装刷取优化概率
