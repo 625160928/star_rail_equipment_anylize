@@ -427,6 +427,12 @@ def cal_exp_numb_from_rate(p,rate):
             return num
     return num
 
+#将数据保存为excel表格
+def save_excel(data_list,name_list):
+
+
+    return
+
 def main(show_log=False,exp_rate=0.95):
     excel_file_path = '星铁装备刷取.xlsx'
 
@@ -479,5 +485,5 @@ def main(show_log=False,exp_rate=0.95):
 if __name__ == "__main__":
     # val_show_log=False
     val_show_log=True
-    val_exp_rate=0.9
+    val_exp_rate=0.95
     main(show_log=val_show_log,exp_rate=val_exp_rate)
