@@ -437,12 +437,8 @@ def cal_exp_numb_from_rate(p,rate):
     return num
 
 
-#将数据保存为excel表格
-def save_excel(data_list,name_list,save_path,sheet_name='default',add_exp_num=False):
-    # data = {
-    #     'Name': ['Alice', 'Bob', 'Charlie'],
-    #     'Age': [25, 30, 35]
-    # }
+#先将需要保存的数据预存起来，获取打包缓存数据
+def get_save_cache_dict(data_list,name_list,sheet_name='default',add_exp_num=0,p_ind=0):
     data_dict=dict()
     for i in range(len(name_list)):
         col_name=name_list[i]
@@ -455,12 +451,16 @@ def save_excel(data_list,name_list,save_path,sheet_name='default',add_exp_num=Fa
 
         data_dict[col_name]=[]
         for j in range(len(data_list)):
-            data_dict[col_name].append(cal_exp_numb_from_rate(data_list[j][2],add_exp_num))
+            data_dict[col_name].append(cal_exp_numb_from_rate(data_list[j][p_ind],add_exp_num))
 
+    return (data_dict,sheet_name)
 
-    df = pd.DataFrame(data_dict)
+#将数据保存为excel表格
+def save_excel(data_dict_list,save_path):
     with pd.ExcelWriter(save_path, engine='openpyxl', mode='w') as writer:
-        df.to_excel(writer, sheet_name=sheet_name, index=False)
+        for data_dict,sheet_name in data_dict_list:
+            df = pd.DataFrame(data_dict)
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
     return
 
 def get_eff_num_except_main(use_list,main_skill):
@@ -496,6 +496,7 @@ def cal_character_equip_update_max_num(character_info_list):
 def main(show_log=False,exp_rate=0.95):
     excel_file_path = '星铁装备刷取.xlsx'
 
+    cache_dict_list=[]
     excel_save_path='分析结果.xlsx'
 
     #初始化主词条字典
@@ -518,11 +519,27 @@ def main(show_log=False,exp_rate=0.95):
     #展示角色更好的装备刷取概率
     sort_eq_list,sort_eq_once_list=show_character_equipment_list(character_info_list)
 
+    # save_excel(sort_eq_list,['套装名称','角色名称','套装提升概率'],
+    #            excel_save_path,sheet_name='角色套装优化概率',add_exp_num=exp_rate)
+
+    cache_dict_list.append(get_save_cache_dict(sort_eq_list,['套装名称','角色名称','套装提升概率'],
+                                               sheet_name='角色套装优化概率', add_exp_num=exp_rate,p_ind=2))
+    cache_dict_list.append(get_save_cache_dict(sort_eq_once_list,['部位名称','角色名称','套装提升概率','当前有效词条数量','理论最高有效词条数量'],
+                                               sheet_name='角色套装部位优化概率', add_exp_num=exp_rate,p_ind=2))
+
+    # save_excel(sort_eq_once_list,['部位名称','角色名称','套装提升概率','当前有效词条数量','理论最高有效词条数量'],
+    #            excel_save_path,sheet_name='角色套装部位优化概率',add_exp_num=exp_rate)
+
+
     #将角色根据装备信息挂载到装备里面去
     sort_equip_match_list,sort_pose_list=load_character_to_equipment(character_info_list)
 
-    save_excel(sort_eq_list,['套装名称','角色名称','套装提升概率'],
-               excel_save_path,sheet_name='角色套装优化概率',add_exp_num=exp_rate)
+    cache_dict_list.append(get_save_cache_dict(sort_equip_match_list,['套装名称','套装提升概率','该套装使用角色列表'],
+                                               sheet_name='套装优化概率', add_exp_num=exp_rate,p_ind=1))
+    cache_dict_list.append(get_save_cache_dict(sort_pose_list,['刷取地点','地点提升概率','可刷取套装列表','该地点可提升角色列表'],
+                                               sheet_name='地点优化概率', add_exp_num=exp_rate,p_ind=1))
+
+    save_excel(cache_dict_list,save_path=excel_save_path)
 
     if show_log:
         #展示角色套装刷取优化概率
