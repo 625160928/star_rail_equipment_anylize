@@ -438,9 +438,29 @@ def cal_exp_numb_from_rate(p,rate):
 
 
 #将数据保存为excel表格
-def save_excel(data_list,name_list):
+def save_excel(data_list,name_list,save_path,sheet_name='default',add_exp_num=False):
+    # data = {
+    #     'Name': ['Alice', 'Bob', 'Charlie'],
+    #     'Age': [25, 30, 35]
+    # }
+    data_dict=dict()
+    for i in range(len(name_list)):
+        col_name=name_list[i]
+        data_dict[col_name]=[]
+        for j in range(len(data_list)):
+            data_dict[col_name].append(data_list[j][i])
+
+    if add_exp_num!=False:
+        col_name='期望出货次数'
+
+        data_dict[col_name]=[]
+        for j in range(len(data_list)):
+            data_dict[col_name].append(cal_exp_numb_from_rate(data_list[j][2],add_exp_num))
 
 
+    df = pd.DataFrame(data_dict)
+    with pd.ExcelWriter(save_path, engine='openpyxl', mode='w') as writer:
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
     return
 
 def get_eff_num_except_main(use_list,main_skill):
@@ -476,6 +496,8 @@ def cal_character_equip_update_max_num(character_info_list):
 def main(show_log=False,exp_rate=0.95):
     excel_file_path = '星铁装备刷取.xlsx'
 
+    excel_save_path='分析结果.xlsx'
+
     #初始化主词条字典
     init_equip_main_dict()
     #初始化副词条字典
@@ -499,7 +521,8 @@ def main(show_log=False,exp_rate=0.95):
     #将角色根据装备信息挂载到装备里面去
     sort_equip_match_list,sort_pose_list=load_character_to_equipment(character_info_list)
 
-
+    save_excel(sort_eq_list,['套装名称','角色名称','套装提升概率'],
+               excel_save_path,sheet_name='角色套装优化概率',add_exp_num=exp_rate)
 
     if show_log:
         #展示角色套装刷取优化概率
