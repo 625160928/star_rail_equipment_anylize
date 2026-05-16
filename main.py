@@ -417,39 +417,62 @@ def load_character_to_equipment(character_info_list):
 
     return sort_equip_match_list,sort_pose_list
 
+#根据多个装备组合计算提升概率
+def cal_combine_eq_p(key,type_list):
+    # print(key,type_list)
+    if len(type_list)==1:
+        name,skill_list,val_num,p=type_list[0]
+        # print(name,skill_list,val_num,p)
+        return  p
+
+
+    return 0
 
 #以装备为基础，进行角色提升概率的计算，通过排列组合的方式正经计算套装出货概率，再分配到角色的提升概率这样。
 def load_character_to_equipment_by_key(character_info_list):
+
     equip_match_character_key_dict=dict()
+
     #将每一个角色名称以及角色的装备提升概率放入装备的字典中
     for ch in character_info_list:
-        eq4_better=sum(ch.p_better[:4])
-        eq2_better=sum(ch.p_better[4:])
-        print(ch.p_better)
-        # print(ch.name,ch.main_yifu,ch.main_xiezi,ch.main_qiu,ch.main_shengzi,ch.val_name_list,ch.eq2,ch.eq4)
-        if ch.eq2 not in equip_match_character_key_dict:
-            equip_match_character_key_dict[ch.eq2]=[]
 
-        for i in ch.eq4:
-            if i not in equip_match_character_key_dict:
-                equip_match_character_key_dict[i]=[]
+
+        #保证副词条列表的顺序，避免后面匹配的时候出现内容一致但是顺序不同导致的不同
         ch.val_name_list.sort()
-        equip_match_character_key_dict[ch.eq2].append((ch.name, ch.main_qiu, ch.main_shengzi,ch.val_name_list ,ch.p_better[4:]))
-        for i in ch.eq4:
-            equip_match_character_key_dict[i].append((ch.name, ch.main_yifu, ch.main_xiezi, ch.val_name_list,ch.p_better[:4]))
-    for key in equip_match_character_key_dict:
-        # print(key,equip_match_character_key_dict[key])
-        # print()
-        print(key,'--------------')
-        for i in equip_match_character_key_dict[key]:
-            print(i)
+        #将内圈两件套加入
+        dict_key_list = [[(ch.eq2,'球', ch.main_qiu),(ch.name,ch.val_name_list,ch.val_num_qiu,ch.p_better[4])],
+                         [(ch.eq2, '绳子', ch.main_shengzi),(ch.name,ch.val_name_list,ch.val_num_shengzi,ch.p_better[5])]]
+        #将外圈四件套加入
+        for eq_name in ch.eq4:
+            dict_key_list.append([(eq_name, '头', '小生命'),(ch.name,ch.val_name_list,ch.val_num_tou,ch.p_better[0])])
+            dict_key_list.append([(eq_name, '手', '小攻击'),(ch.name,ch.val_name_list,ch.val_num_shou,ch.p_better[1])])
+            dict_key_list.append([(eq_name, '衣服', ch.main_yifu),(ch.name,ch.val_name_list,ch.val_num_yifu,ch.p_better[2])])
+            dict_key_list.append([(eq_name, '鞋子', ch.main_xiezi),(ch.name,ch.val_name_list,ch.val_num_xiezi,ch.p_better[3])])
 
-        # eq4_better=sum(ch.p_better[:4])
-    #     eq2_better=sum(ch.p_better[4:])
-    #     equip_match_character_dict[ch.eq2].append((ch.name,eq2_better))
-    #     for i in ch.eq4:
-    #         equip_match_character_dict[i].append((ch.name,eq4_better))
-    # print(equip_match_character_dict)
+        #将六件装备主词条信息及对应的副词条信息加入代刷去列表
+        for key_name,val in dict_key_list:
+            # equip_match_character_key_dict
+            # print(key_name,val)
+            if key_name not in equip_match_character_key_dict:
+                equip_match_character_key_dict[key_name]=[]
+            equip_match_character_key_dict[key_name].append(val)
+
+    eq_match_p_dict=dict()
+    for key in equip_match_character_key_dict:
+        p=cal_combine_eq_p(key,equip_match_character_key_dict[key])
+        eq_match_p_dict[key]=p
+
+    #用eq list分析一下有多少需要分析的装备
+    eq_list=[]
+    for key in equip_match_character_key_dict:
+        eq_list.append((len(equip_match_character_key_dict[key]),key,equip_match_character_key_dict[key]))
+    eq_list=sorted(eq_list,key=lambda x:x[0])
+
+    # 展示代码神力！
+    for i in range(len(eq_list)):
+        if eq_list[i][0]>0:
+            print(i,eq_match_p_dict[eq_list[i][1]],eq_list[i],)
+
 
 
 
