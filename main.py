@@ -425,6 +425,24 @@ def cal_combine_eq_p(key,type_list):
         # print(name,skill_list,val_num,p)
         return  p
 
+    eq_name,eq_pose,main_skill=key
+
+    #在计算副词条前，装备初始刷取期望为1.05
+    head_p=1.05
+    #然后刷出对应部位的概率计算
+    if eq_pose in ['头', '手', '衣服', '鞋子']:
+        head_p *= 0.25
+    else:
+        head_p *= 0.5
+    #然后是部位主词条出现概率
+    head_p*=equip_main[(eq_pose, main_skill)]
+
+    skill_list_dict=dict()
+    print(key,head_p,'------------')
+    #然后开始研究副词条概率
+    for name,skill_list,val_num,p in type_list:
+        print(name,skill_list,val_num,p)
+
 
     return 0
 
@@ -468,10 +486,10 @@ def load_character_to_equipment_by_key(character_info_list):
         eq_list.append((len(equip_match_character_key_dict[key]),key,equip_match_character_key_dict[key]))
     eq_list=sorted(eq_list,key=lambda x:x[0])
 
-    # 展示代码神力！
-    for i in range(len(eq_list)):
-        if eq_list[i][0]>0:
-            print(i,eq_match_p_dict[eq_list[i][1]],eq_list[i],)
+    # # 展示代码神力！
+    # for i in range(len(eq_list)):
+    #     if eq_list[i][0]>0:
+    #         print(i,eq_match_p_dict[eq_list[i][1]],eq_list[i],)
 
 
 
