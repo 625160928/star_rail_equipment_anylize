@@ -437,6 +437,7 @@ def cal_combine_eq_p(key,type_list):
     #然后是部位主词条出现概率
     head_p*=equip_main[(eq_pose, main_skill)]
 
+    #计划将每个有意义的组合都添加进字典
     skill_list_dict=dict()
     print(key,head_p,'------------')
     #然后开始研究副词条概率
