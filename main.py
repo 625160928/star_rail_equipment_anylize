@@ -363,18 +363,18 @@ def show_character_equipment_list(character_info_list):
 
     return sort_eq_list,sort_eq_once_list
 
-#以装备为基础，进行角色提升概率的计算
+#以装备为基础，进行角色提升概率的计算,这里只在角色提升概率计算后进行简单累计
 def load_character_to_equipment(character_info_list):
-
+    #将每一个角色名称以及角色的装备提升概率放入装备的字典中
     for ch in character_info_list:
         eq4_better=sum(ch.p_better[:4])
         eq2_better=sum(ch.p_better[4:])
         equip_match_character_dict[ch.eq2].append((ch.name,eq2_better))
         for i in ch.eq4:
             equip_match_character_dict[i].append((ch.name,eq4_better))
+    # print(equip_match_character_dict)
 
-
-
+    #统计装备字典里，每一套装备底下所有角色的提升概率，计算套装提升的概率总和
     equip_match_list=[]
     for key in equip_match_character_dict:
         if len(equip_match_character_dict[key])>0:
@@ -418,6 +418,44 @@ def load_character_to_equipment(character_info_list):
     return sort_equip_match_list,sort_pose_list
 
 
+#以装备为基础，进行角色提升概率的计算，通过排列组合的方式正经计算套装出货概率，再分配到角色的提升概率这样。
+def load_character_to_equipment_by_key(character_info_list):
+    equip_match_character_key_dict=dict()
+    #将每一个角色名称以及角色的装备提升概率放入装备的字典中
+    for ch in character_info_list:
+        eq4_better=sum(ch.p_better[:4])
+        eq2_better=sum(ch.p_better[4:])
+        print(ch.p_better)
+        # print(ch.name,ch.main_yifu,ch.main_xiezi,ch.main_qiu,ch.main_shengzi,ch.val_name_list,ch.eq2,ch.eq4)
+        if ch.eq2 not in equip_match_character_key_dict:
+            equip_match_character_key_dict[ch.eq2]=[]
+
+        for i in ch.eq4:
+            if i not in equip_match_character_key_dict:
+                equip_match_character_key_dict[i]=[]
+        ch.val_name_list.sort()
+        equip_match_character_key_dict[ch.eq2].append((ch.name, ch.main_qiu, ch.main_shengzi,ch.val_name_list ,ch.p_better[4:]))
+        for i in ch.eq4:
+            equip_match_character_key_dict[i].append((ch.name, ch.main_yifu, ch.main_xiezi, ch.val_name_list,ch.p_better[:4]))
+    for key in equip_match_character_key_dict:
+        # print(key,equip_match_character_key_dict[key])
+        # print()
+        print(key,'--------------')
+        for i in equip_match_character_key_dict[key]:
+            print(i)
+
+        # eq4_better=sum(ch.p_better[:4])
+    #     eq2_better=sum(ch.p_better[4:])
+    #     equip_match_character_dict[ch.eq2].append((ch.name,eq2_better))
+    #     for i in ch.eq4:
+    #         equip_match_character_dict[i].append((ch.name,eq4_better))
+    # print(equip_match_character_dict)
+
+
+
+
+
+    return
 #计算在概率p出货的情况下，期望要多少次才能让出货（满级后词条数量大于目前）概率大于rate
 #p：出货概率
 #rate：目标为出现一个更好的装备的情况下，多少概率满足
@@ -539,6 +577,10 @@ def main(show_log=False,exp_rate=0.95):
     cache_dict_list.append(get_save_cache_dict(sort_pose_list,['刷取地点','地点提升概率','可刷取套装列表','该地点可提升角色列表'],
                                                sheet_name='地点优化概率', add_exp_num=exp_rate,p_ind=1))
 
+    #通过计算每个装备每个词条的出货概率来算套装的出货提升率
+    load_character_to_equipment_by_key(character_info_list)
+
+
     save_excel(cache_dict_list,save_path=excel_save_path)
 
     if show_log:
@@ -568,7 +610,7 @@ def main(show_log=False,exp_rate=0.95):
             # print()
 
 if __name__ == "__main__":
-    # val_show_log=False
-    val_show_log=True
+    val_show_log=False
+    # val_show_log=True
     val_exp_rate=0.95
     main(show_log=val_show_log,exp_rate=val_exp_rate)
