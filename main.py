@@ -597,7 +597,7 @@ def get_save_cache_dict(data_list,name_list,sheet_name='default',add_exp_num=0,p
             data_dict[col_name].append(data_list[j][i])
 
     if add_exp_num!=False:
-        col_name='期望出货次数'
+        col_name=str(int(add_exp_num*100))+'%期望出货次数'
 
         data_dict[col_name]=[]
         for j in range(len(data_list)):
