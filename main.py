@@ -439,13 +439,50 @@ def cal_combine_eq_p(key,type_list):
 
     #计划将每个有意义的组合都添加进字典
     skill_list_dict=dict()
-    print(key,head_p,'------------')
+    # print('=========================================================================================================')
+    # print(key,head_p,'---------------------------')
+
+    val_num_dict=dict()
+    for i in range(5):
+        val_num_dict[i]=math_cal.cal_p_when_init_val_num(i)
+        # print(i,math_cal.cal_p_when_init_val_num(i))
+
     #然后开始研究副词条概率
     for name,skill_list,val_num,p in type_list:
-        print(name,skill_list,val_num,p)
+        bk_skill_list=copy.deepcopy(res_skill_list)
+        if main_skill in bk_skill_list:
+            bk_skill_list.remove(main_skill)
+        if main_skill in skill_list:
+            skill_list.remove(main_skill)
+        for skill in skill_list:
+            if skill in bk_skill_list:
+                bk_skill_list.remove(skill)
+        # print(name,len(skill_list)+len(bk_skill_list),len(skill_list),len(bk_skill_list),skill_list,main_skill,val_num,p,bk_skill_list)
+        useful_skill_combine_p_list=math_cal.cal_p_at_need_combine(skill_list,bk_skill_list)
 
+        sum_p=0
+        for useful_num,skill_list_combine,weight_list_combine,skill_list_combine_p in useful_skill_combine_p_list:
+            # print(i,i[3])
+            sum_p+=sum(val_num_dict[useful_num][val_num:])*skill_list_combine_p
+            if skill_list_combine not in skill_list_dict:
+                skill_list_dict[skill_list_combine]=[]
+            skill_list_dict[skill_list_combine].append((name,useful_num,val_num,skill_list_combine_p,sum(val_num_dict[useful_num][val_num:])))
 
-    return 0
+            # print( eq_name,eq_pose,name,sum(val_num_dict[useful_num][val_num:])*skill_list_combine_p,val_num,val_num_dict[useful_num],sum(val_num_dict[useful_num][val_num:]),skill_list_combine_p)
+        # if ('净庭教宗的圣骑士' in eq_name) and ('头' in eq_pose):
+        #     print('sum p ',name,sum_p,sum_p*head_p)
+
+    better_p=0
+    for key in skill_list_dict:
+        max_p=0
+        eq_p=0
+        for name,useful_num,val_num,eq_p,b_p in skill_list_dict[key]:
+            if b_p>max_p:
+                max_p=b_p
+        better_p+=max_p*eq_p
+        # print(max_p*eq_p,key,skill_list_dict[key])
+    # print('副词条优化概率 better p ',better_p,' 总优化概率 ',better_p*head_p)
+    return better_p*head_p
 
 #以装备为基础，进行角色提升概率的计算，通过排列组合的方式正经计算套装出货概率，再分配到角色的提升概率这样。
 def load_character_to_equipment_by_key(character_info_list):
@@ -481,23 +518,56 @@ def load_character_to_equipment_by_key(character_info_list):
         p=cal_combine_eq_p(key,equip_match_character_key_dict[key])
         eq_match_p_dict[key]=p
 
-    #用eq list分析一下有多少需要分析的装备
-    eq_list=[]
+    #用eq list分析一下有多少需要分析的装备部位
+    eq_pose_list=[]
     for key in equip_match_character_key_dict:
-        eq_list.append((len(equip_match_character_key_dict[key]),key,equip_match_character_key_dict[key]))
-    eq_list=sorted(eq_list,key=lambda x:x[0])
+        eq_pose_list.append((eq_match_p_dict[key],len(equip_match_character_key_dict[key]),key,equip_match_character_key_dict[key]))
+    eq_pose_list=sorted(eq_pose_list,key=lambda x:x[0])
 
     # # 展示代码神力！
-    # for i in range(len(eq_list)):
-    #     if eq_list[i][0]>0:
-    #         print(i,eq_match_p_dict[eq_list[i][1]],eq_list[i],)
+    # for i in range(len(eq_pose_list)):
+    #     print(eq_pose_list[i])
 
+    opt_eq_pose_list=[]
+    for bp,useful_character_num,eq_pose,ch_list in eq_pose_list:
+        # eq_str=eq_pose[0]+'-'+eq_pose[1]
+        character_str=set()
+        for ch_name,_,_,_ in ch_list:
+            character_str.add(ch_name)
+        opt_eq_pose_list.append([eq_pose[0],eq_pose[1],character_str,bp])
+    opt_eq_pose_list=sorted( opt_eq_pose_list,key=lambda x:x[3])
+    # for i in opt_eq_pose_list:
+    #     print(i)
+    # print('------------------')
 
+    #然后统计套装可以提升的概率
+    eq_list=[]
+    eq_dict=dict()
+    for eq_name,eq_pose,ch_str,p in opt_eq_pose_list:
+        if eq_name not in eq_dict:
+            eq_dict[eq_name]=[ch_str,p]
+        else:
+            eq_dict[eq_name][0]=eq_dict[eq_name][0] |ch_str
+            eq_dict[eq_name][1]+=p
+    for key in eq_dict:
+        eq_list.append([key,eq_dict[key][0],eq_dict[key][1]])
+    eq_list=sorted(eq_list,key=lambda x:x[2])
+    # for i in eq_list:
+    #     print(i)
 
+    for i in range(len(eq_list)):
+        ch_str=''
+        for j in eq_list[i][1]:
+            ch_str+=j+'、'
+        eq_list[i][1]=ch_str
 
+    for i in range(len(opt_eq_pose_list)):
+        ch_str=''
+        for j in opt_eq_pose_list[i][2]:
+            ch_str+=j+'、'
+        opt_eq_pose_list[i][2]=ch_str
 
-
-    return
+    return opt_eq_pose_list,eq_list
 #计算在概率p出货的情况下，期望要多少次才能让出货（满级后词条数量大于目前）概率大于rate
 #p：出货概率
 #rate：目标为出现一个更好的装备的情况下，多少概率满足
@@ -620,8 +690,14 @@ def main(show_log=False,exp_rate=0.95):
                                                sheet_name='地点优化概率', add_exp_num=exp_rate,p_ind=1))
 
     #通过计算每个装备每个词条的出货概率来算套装的出货提升率
-    load_character_to_equipment_by_key(character_info_list)
+    eq_pose_list,eq_list=load_character_to_equipment_by_key(character_info_list)
 
+    for i in eq_pose_list:
+        print(i)
+    cache_dict_list.append(get_save_cache_dict(eq_pose_list,['套装名称','部位名称','该套装使用角色列表','套装部位提升概率'],
+                                               sheet_name='套装部位优化概率', add_exp_num=exp_rate,p_ind=3))
+    cache_dict_list.append(get_save_cache_dict(eq_list,['套装名称','该套装使用角色列表','套装提升概率'],
+                                               sheet_name='套装优化准确概率', add_exp_num=exp_rate,p_ind=2))
 
     save_excel(cache_dict_list,save_path=excel_save_path)
 
