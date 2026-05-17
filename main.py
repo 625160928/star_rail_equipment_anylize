@@ -555,6 +555,27 @@ def load_character_to_equipment_by_key(character_info_list):
     # for i in eq_list:
     #     print(i)
 
+
+    pos_dict=dict()
+    # for key in equip_from_dict:
+    #     print(key,equip_from_dict[key])
+
+    for eq_name,ch_list,p in eq_list:
+        position_name=equip_from_dict[eq_name]
+        if position_name not in pos_dict:
+            pos_dict[position_name]=['',set(),0]
+        pos_dict[position_name][0]+=eq_name+'、'
+        pos_dict[position_name][1]=pos_dict[position_name][1]|ch_list
+        pos_dict[position_name][2] +=p
+
+    pos_list=[]
+    for key in pos_dict:
+        # print(key,pos_dict[key])
+        pos_list.append([key,pos_dict[key][2],pos_dict[key][0],pos_dict[key][1]])
+
+    pos_list=sorted(pos_list,key=lambda x:x[1])
+
+    #将list里面set集合的角色名称转化为str用来保存
     for i in range(len(eq_list)):
         ch_str=''
         for j in eq_list[i][1]:
@@ -567,7 +588,17 @@ def load_character_to_equipment_by_key(character_info_list):
             ch_str+=j+'、'
         opt_eq_pose_list[i][2]=ch_str
 
-    return opt_eq_pose_list,eq_list
+
+    for i in range(len(pos_list)):
+        ch_str=''
+        for j in pos_list[i][3]:
+            ch_str+=j+'、'
+        pos_list[i][3]=ch_str
+    # for i in pos_list:
+    #     print(i)
+
+
+    return opt_eq_pose_list,eq_list,pos_list
 #计算在概率p出货的情况下，期望要多少次才能让出货（满级后词条数量大于目前）概率大于rate
 #p：出货概率
 #rate：目标为出现一个更好的装备的情况下，多少概率满足
@@ -686,14 +717,18 @@ def main(show_log=False,exp_rate=0.95):
 
 
     #通过计算每个装备每个词条的出货概率来算套装的出货提升率
-    eq_pose_list,eq_list=load_character_to_equipment_by_key(character_info_list)
+    eq_pose_list,eq_list,pos_list=load_character_to_equipment_by_key(character_info_list)
 
-    # for i in eq_pose_list:
-    #     print(i)
+    for i in pos_list:
+        print(i)
     cache_dict_list.append(get_save_cache_dict(eq_pose_list,['套装名称','部位名称','该套装使用角色列表','套装部位提升概率'],
                                                sheet_name='套装部位优化概率', add_exp_num=exp_rate,p_ind=3))
     cache_dict_list.append(get_save_cache_dict(eq_list,['套装名称','该套装使用角色列表','套装提升概率'],
                                                sheet_name='套装优化准确概率', add_exp_num=exp_rate,p_ind=2))
+
+    cache_dict_list.append(get_save_cache_dict(pos_list,['刷取地点','地点提升概率','可刷取套装列表','该地点可提升角色列表'],
+                                               sheet_name='地点优化概率', add_exp_num=exp_rate,p_ind=1))
+
 
     cache_dict_list.append(get_save_cache_dict(sort_equip_match_list,['套装名称','套装提升概率','该套装使用角色列表'],
                                                sheet_name='(旧)套装优化概率', add_exp_num=exp_rate,p_ind=1))
